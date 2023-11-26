@@ -27,4 +27,4 @@ This is a general overview of the features that comes with Clash.
 
 ## License
 
-This software is released under the GPL-3.0 license.
+Clash is licensed under the [GPL-3.0 License](https://opensource.org/license/gpl-3-0/). See [LICENSE](LICENSE) for more details.
