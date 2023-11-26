@@ -10,13 +10,14 @@ import (
 	"syscall"
 	_ "time/tzdata"
 
+	_ "github.com/kr/pretty"
+	"go.uber.org/automaxprocs/maxprocs"
+
 	"github.com/Dreamacro/clash/config"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/hub"
 	"github.com/Dreamacro/clash/hub/executor"
 	"github.com/Dreamacro/clash/log"
-
-	"go.uber.org/automaxprocs/maxprocs"
 )
 
 var (
@@ -66,7 +67,7 @@ func main() {
 		C.SetConfig(configFile)
 	}
 
-	if err := config.Init(C.Path.HomeDir()); err != nil {
+	if err := config.Init(C.Path.HomeDir(), C.Path.CacheDir()); err != nil {
 		log.Fatalln("Initial configuration directory error: %s", err.Error())
 	}
 

@@ -51,7 +51,7 @@ func initMMDB() error {
 }
 
 // Init prepare necessary files
-func Init(dir string) error {
+func Init(dir string, cacheDir string) error {
 	// initial homedir
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dir, 0o777); err != nil {
@@ -70,9 +70,17 @@ func Init(dir string) error {
 		f.Close()
 	}
 
+	// Initialize cache directory
+	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+			return fmt.Errorf("can't create cache directory %s: %s", dir, err.Error())
+		}
+	}
+
 	// initial mmdb
 	if err := initMMDB(); err != nil {
 		return fmt.Errorf("can't initial MMDB: %w", err)
 	}
+
 	return nil
 }

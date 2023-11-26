@@ -5,6 +5,8 @@ import (
 	P "path"
 	"path/filepath"
 	"strings"
+
+	"github.com/adrg/xdg"
 )
 
 const Name = "clash"
@@ -26,11 +28,21 @@ var Path = func() *path {
 			homeDir = P.Join(configHome, Name)
 		}
 	}
-	return &path{homeDir: homeDir, configFile: "config.yaml"}
+
+	p := &path{
+		homeDir:  homeDir,
+		cacheDir: filepath.Join(xdg.CacheHome, "clash"),
+
+		configFile: "config.yaml",
+	}
+
+	return p
 }()
 
 type path struct {
-	homeDir    string
+	homeDir  string
+	cacheDir string
+
 	configFile string
 }
 
@@ -46,6 +58,10 @@ func SetConfig(file string) {
 
 func (p *path) HomeDir() string {
 	return p.homeDir
+}
+
+func (p *path) CacheDir() string {
+	return p.cacheDir
 }
 
 func (p *path) Config() string {
@@ -77,10 +93,6 @@ func (p *path) MMDB() string {
 	return P.Join(p.homeDir, "Country.mmdb")
 }
 
-func (p *path) OldCache() string {
-	return P.Join(p.homeDir, ".cache")
-}
-
 func (p *path) Cache() string {
-	return P.Join(p.homeDir, "cache.db")
+	return P.Join(p.cacheDir, "cache.db")
 }

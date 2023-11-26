@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/Dreamacro/protobytes v0.0.0-20230911123819-0bbf144b9b9a
+	github.com/adrg/xdg v0.4.0
 	github.com/dlclark/regexp2 v1.10.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
@@ -11,6 +12,7 @@ require (
 	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/insomniacslk/dhcp v0.0.0-20231126010706-b0416c0f187a
+	github.com/kr/pretty v0.1.0
 	github.com/mdlayher/netlink v1.7.2
 	github.com/miekg/dns v1.1.57
 	github.com/oschwald/geoip2-golang v1.9.0
