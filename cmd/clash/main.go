@@ -67,7 +67,7 @@ func main() {
 		C.SetConfig(configFile)
 	}
 
-	if err := config.Init(C.Path.HomeDir(), C.Path.CacheDir()); err != nil {
+	if err := config.Init(C.Path.HomeDir(), C.Path.CacheDir(), C.Path.StateDir()); err != nil {
 		log.Fatalln("Initial configuration directory error: %s", err.Error())
 	}
 

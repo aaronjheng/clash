@@ -32,6 +32,7 @@ var Path = func() *path {
 	p := &path{
 		homeDir:  homeDir,
 		cacheDir: filepath.Join(xdg.CacheHome, "clash"),
+		stateDir: filepath.Join(xdg.StateHome, "clash"),
 
 		configFile: "config.yaml",
 	}
@@ -42,6 +43,7 @@ var Path = func() *path {
 type path struct {
 	homeDir  string
 	cacheDir string
+	stateDir string
 
 	configFile string
 }
@@ -62,6 +64,10 @@ func (p *path) HomeDir() string {
 
 func (p *path) CacheDir() string {
 	return p.cacheDir
+}
+
+func (p *path) StateDir() string {
+	return p.stateDir
 }
 
 func (p *path) Config() string {
@@ -90,7 +96,7 @@ func (p *path) IsSubPath(path string) bool {
 }
 
 func (p *path) MMDB() string {
-	return P.Join(p.homeDir, "Country.mmdb")
+	return P.Join(p.stateDir, "Country.mmdb")
 }
 
 func (p *path) Cache() string {
