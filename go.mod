@@ -12,7 +12,7 @@ require (
 	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/insomniacslk/dhcp v0.0.0-20231126010706-b0416c0f187a
-	github.com/kr/pretty v0.1.0
+	github.com/kr/pretty v0.3.1
 	github.com/mdlayher/netlink v1.7.2
 	github.com/miekg/dns v1.1.57
 	github.com/oschwald/geoip2-golang v1.9.0
@@ -40,6 +40,7 @@ require (
 	github.com/oschwald/maxminddb-golang v1.12.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/u-root/uio v0.0.0-20230305220412-3e8cd9d6bf63 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
