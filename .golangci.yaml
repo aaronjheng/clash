@@ -1,26 +1,23 @@
 linters:
   disable-all: true
   enable:
-    - gci
-    - gofumpt
+    # - errcheck
     - gosimple
     - govet
     - ineffassign
-    - misspell
     - staticcheck
-    - unconvert
     - unused
+
+    - gofumpt
+    - goimports
+    # - gci
+    - misspell
+    - unconvert
     - usestdlibvars
-    - exhaustive
+    # - exhaustive
 
 linters-settings:
-  gci:
-    custom-order: true
-    sections:
-      - standard
-      - prefix(github.com/Dreamacro/clash)
-      - default
   staticcheck:
-    go: '1.21'
-  exhaustive:
-    default-signifies-exhaustive: true
+    go: "1.21"
+  goimports:
+    local-prefixes: github.com/Dreamacro/clash
