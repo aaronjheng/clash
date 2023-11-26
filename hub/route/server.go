@@ -10,15 +10,16 @@ import (
 	"time"
 	"unsafe"
 
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	"github.com/Dreamacro/clash/tunnel/statistic"
-
 	"github.com/Dreamacro/protobytes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/gorilla/websocket"
+
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/internal/version"
+	"github.com/Dreamacro/clash/log"
+	"github.com/Dreamacro/clash/tunnel/statistic"
 )
 
 var (
@@ -67,7 +68,7 @@ func Start(addr string, secret string) {
 		r.Get("/", hello)
 		r.Get("/logs", getLogs)
 		r.Get("/traffic", traffic)
-		r.Get("/version", version)
+		r.Get("/version", handleVersion)
 		r.Mount("/configs", configRouter())
 		r.Mount("/inbounds", inboundRouter())
 		r.Mount("/proxies", proxyRouter())
@@ -261,6 +262,6 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func version(w http.ResponseWriter, r *http.Request) {
-	render.JSON(w, r, render.M{"version": C.Version})
+func handleVersion(w http.ResponseWriter, r *http.Request) {
+	render.JSON(w, r, render.M{"version": version.Version})
 }
