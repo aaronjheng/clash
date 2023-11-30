@@ -8,12 +8,6 @@ import (
 
 type Option func(*config.Config)
 
-func WithExternalUI(externalUI string) Option {
-	return func(cfg *config.Config) {
-		cfg.General.ExternalUI = externalUI
-	}
-}
-
 func WithExternalController(externalController string) Option {
 	return func(cfg *config.Config) {
 		cfg.General.ExternalController = externalController
@@ -35,10 +29,6 @@ func Parse(options ...Option) error {
 
 	for _, option := range options {
 		option(cfg)
-	}
-
-	if cfg.General.ExternalUI != "" {
-		route.SetUIPath(cfg.General.ExternalUI)
 	}
 
 	if cfg.General.ExternalController != "" {

@@ -16,7 +16,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/gorilla/websocket"
 
-	C "github.com/Dreamacro/clash/internal/constant"
 	"github.com/Dreamacro/clash/internal/log"
 	"github.com/Dreamacro/clash/internal/tunnel/statistic"
 	"github.com/Dreamacro/clash/internal/version"
@@ -25,8 +24,6 @@ import (
 var (
 	serverSecret = ""
 	serverAddr   = ""
-
-	uiPath = ""
 
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -38,10 +35,6 @@ var (
 type Traffic struct {
 	Up   int64 `json:"up"`
 	Down int64 `json:"down"`
-}
-
-func SetUIPath(path string) {
-	uiPath = C.Path.Resolve(path)
 }
 
 func Start(addr string, secret string) {
@@ -77,16 +70,6 @@ func Start(addr string, secret string) {
 		r.Mount("/providers/proxies", proxyProviderRouter())
 		r.Mount("/dns", dnsRouter())
 	})
-
-	if uiPath != "" {
-		r.Group(func(r chi.Router) {
-			fs := http.StripPrefix("/ui", http.FileServer(http.Dir(uiPath)))
-			r.Get("/ui", http.RedirectHandler("/ui/", http.StatusTemporaryRedirect).ServeHTTP)
-			r.Get("/ui/*", func(w http.ResponseWriter, r *http.Request) {
-				fs.ServeHTTP(w, r)
-			})
-		})
-	}
 
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
