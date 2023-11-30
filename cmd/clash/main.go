@@ -13,12 +13,12 @@ import (
 	_ "github.com/kr/pretty"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/Dreamacro/clash/config"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/hub"
-	"github.com/Dreamacro/clash/hub/executor"
+	"github.com/Dreamacro/clash/internal/config"
+	C "github.com/Dreamacro/clash/internal/constant"
+	"github.com/Dreamacro/clash/internal/hub"
+	"github.com/Dreamacro/clash/internal/hub/executor"
+	"github.com/Dreamacro/clash/internal/log"
 	internalversion "github.com/Dreamacro/clash/internal/version"
-	"github.com/Dreamacro/clash/log"
 )
 
 var (
