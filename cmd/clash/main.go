@@ -24,14 +24,12 @@ import (
 var (
 	version            bool
 	testConfig         bool
-	homeDir            string
 	configFile         string
 	externalController string
 	secret             string
 )
 
 func init() {
-	flag.StringVar(&homeDir, "d", os.Getenv("CLASH_HOME_DIR"), "set configuration directory")
 	flag.StringVar(&configFile, "f", os.Getenv("CLASH_CONFIG_FILE"), "specify configuration file")
 	flag.StringVar(&externalController, "ext-ctl", os.Getenv("CLASH_OVERRIDE_EXTERNAL_CONTROLLER"), "override external controller address")
 	flag.StringVar(&secret, "secret", os.Getenv("CLASH_OVERRIDE_SECRET"), "override secret for RESTful API")
@@ -45,14 +43,6 @@ func main() {
 	if version {
 		fmt.Printf("Clash %s %s %s with %s\n", internalversion.Version, runtime.GOOS, runtime.GOARCH, runtime.Version())
 		return
-	}
-
-	if homeDir != "" {
-		if !filepath.IsAbs(homeDir) {
-			currentDir, _ := os.Getwd()
-			homeDir = filepath.Join(currentDir, homeDir)
-		}
-		C.SetHomeDir(homeDir)
 	}
 
 	if configFile != "" {
