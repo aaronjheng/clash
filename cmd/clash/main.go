@@ -96,7 +96,7 @@ func rootCmd() *cobra.Command {
 	}
 
 	flagSet := cmd.Flags()
-	flagSet.StringVar(&configFile, "f", "", "Configuration file path")
+	flagSet.StringVarP(&configFile, "config", "f", "", "Configuration file path")
 
 	return cmd
 }
