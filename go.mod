@@ -16,7 +16,7 @@ require (
 	github.com/mdlayher/netlink v1.7.2
 	github.com/miekg/dns v1.1.57
 	github.com/oschwald/geoip2-golang v1.9.0
-	github.com/samber/lo v1.38.1
+	github.com/samber/lo v1.39.0
 	github.com/spf13/cobra v1.8.0
 	github.com/square/exit v1.1.0
 	github.com/stretchr/testify v1.8.4

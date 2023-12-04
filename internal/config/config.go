@@ -8,6 +8,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/samber/lo"
+	"gopkg.in/yaml.v3"
+
 	"github.com/Dreamacro/clash/internal/adapter"
 	"github.com/Dreamacro/clash/internal/adapter/outbound"
 	"github.com/Dreamacro/clash/internal/adapter/outboundgroup"
@@ -21,9 +24,6 @@ import (
 	"github.com/Dreamacro/clash/internal/log"
 	R "github.com/Dreamacro/clash/internal/rule"
 	T "github.com/Dreamacro/clash/internal/tunnel"
-
-	"github.com/samber/lo"
-	"gopkg.in/yaml.v3"
 )
 
 // General config
