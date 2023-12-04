@@ -2,23 +2,27 @@ package log
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/Dreamacro/clash/internal/common/observable"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/square/exit"
 )
+
+func init() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
+	}))
+
+	slog.SetDefault(logger)
+}
 
 var (
 	logCh  = make(chan any)
 	source = observable.NewObservable(logCh)
 	level  = INFO
 )
-
-func init() {
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
-}
 
 type Event struct {
 	LogLevel LogLevel
@@ -54,7 +58,8 @@ func Debugln(format string, v ...any) {
 }
 
 func Fatalln(format string, v ...any) {
-	log.Fatalf(format, v...)
+	slog.Error(fmt.Sprintf(format, v...))
+	os.Exit(exit.NotOK)
 }
 
 func Subscribe() observable.Subscription {
@@ -80,14 +85,14 @@ func print(data Event) {
 	}
 
 	switch data.LogLevel {
-	case INFO:
-		log.Infoln(data.Payload)
-	case WARNING:
-		log.Warnln(data.Payload)
-	case ERROR:
-		log.Errorln(data.Payload)
 	case DEBUG:
-		log.Debugln(data.Payload)
+		slog.Debug(data.Payload)
+	case INFO:
+		slog.Info(data.Payload)
+	case WARNING:
+		slog.Warn(data.Payload)
+	case ERROR:
+		slog.Error(data.Payload)
 	case SILENT:
 		return
 	}
