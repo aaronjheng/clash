@@ -1,11 +1,11 @@
-module github.com/Dreamacro/clash
+module github.com/clash-dev/clash
 
 go 1.21.3
 
 require (
-	github.com/Dreamacro/clash/api v0.0.0
 	github.com/Dreamacro/protobytes v0.0.0-20230911123819-0bbf144b9b9a
 	github.com/adrg/xdg v0.4.0
+	github.com/clash-dev/clash/api v0.0.0
 	github.com/dlclark/regexp2 v1.10.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
@@ -58,4 +58,4 @@ require (
 
 )
 
-replace github.com/Dreamacro/clash/api => ./api
+replace github.com/clash-dev/clash/api => ./api

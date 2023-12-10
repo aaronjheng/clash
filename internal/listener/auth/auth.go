@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/Dreamacro/clash/internal/component/auth"
+	"github.com/clash-dev/clash/internal/component/auth"
 )
 
 var authenticator auth.Authenticator

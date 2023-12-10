@@ -3,7 +3,7 @@ package tools
 import (
 	"encoding/binary"
 
-	"github.com/Dreamacro/clash/internal/common/pool"
+	"github.com/clash-dev/clash/internal/common/pool"
 )
 
 // XorShift128Plus - a pseudorandom number generator

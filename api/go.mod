@@ -1,4 +1,4 @@
-module github.com/Dreamacro/clash/api
+module github.com/clash-dev/clash/api
 
 go 1.21.3
 

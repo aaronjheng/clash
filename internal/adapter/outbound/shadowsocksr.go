@@ -6,13 +6,13 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/Dreamacro/clash/internal/component/dialer"
-	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/transport/shadowsocks/core"
-	"github.com/Dreamacro/clash/internal/transport/shadowsocks/shadowaead"
-	"github.com/Dreamacro/clash/internal/transport/shadowsocks/shadowstream"
-	"github.com/Dreamacro/clash/internal/transport/ssr/obfs"
-	"github.com/Dreamacro/clash/internal/transport/ssr/protocol"
+	"github.com/clash-dev/clash/internal/component/dialer"
+	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/transport/shadowsocks/core"
+	"github.com/clash-dev/clash/internal/transport/shadowsocks/shadowaead"
+	"github.com/clash-dev/clash/internal/transport/shadowsocks/shadowstream"
+	"github.com/clash-dev/clash/internal/transport/ssr/obfs"
+	"github.com/clash-dev/clash/internal/transport/ssr/protocol"
 )
 
 type ShadowSocksR struct {
@@ -94,7 +94,7 @@ func (ssr *ShadowSocksR) ListenPacketContext(ctx context.Context, metadata *C.Me
 
 func NewShadowSocksR(option ShadowSocksROption) (*ShadowSocksR, error) {
 	// SSR protocol compatibility
-	// https://github.com/Dreamacro/clash/pull/2056
+	// https://github.com/clash-dev/clash/pull/2056
 	if option.Cipher == "none" {
 		option.Cipher = "dummy"
 	}

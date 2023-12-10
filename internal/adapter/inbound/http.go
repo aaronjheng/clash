@@ -4,9 +4,9 @@ import (
 	"net"
 	"net/netip"
 
-	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/context"
-	"github.com/Dreamacro/clash/internal/transport/socks5"
+	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/context"
+	"github.com/clash-dev/clash/internal/transport/socks5"
 )
 
 // NewHTTP receive normal http request and return HTTPContext

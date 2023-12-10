@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Dreamacro/clash/internal/component/mmdb"
-	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/log"
+	"github.com/clash-dev/clash/internal/component/mmdb"
+	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/log"
 )
 
 func (s *Server) Bootstrap(dir string, cacheDir string, stateDir string) error {

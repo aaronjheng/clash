@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Dreamacro/clash/internal/common/cache"
-	"github.com/Dreamacro/clash/internal/component/fakeip"
-	"github.com/Dreamacro/clash/internal/component/resolver"
-	"github.com/Dreamacro/clash/internal/component/trie"
-	C "github.com/Dreamacro/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/common/cache"
+	"github.com/clash-dev/clash/internal/component/fakeip"
+	"github.com/clash-dev/clash/internal/component/resolver"
+	"github.com/clash-dev/clash/internal/component/trie"
+	C "github.com/clash-dev/clash/internal/constant"
 
 	D "github.com/miekg/dns"
 	"github.com/samber/lo"

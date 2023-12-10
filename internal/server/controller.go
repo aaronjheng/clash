@@ -6,20 +6,20 @@ import (
 	"math"
 	"time"
 
-	clashv1 "github.com/Dreamacro/clash/api/clash/v1"
-	"github.com/Dreamacro/clash/internal/component/resolver"
-	"github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/listener"
-	"github.com/Dreamacro/clash/internal/log"
-	"github.com/Dreamacro/clash/internal/tunnel"
-	"github.com/Dreamacro/clash/internal/tunnel/statistic"
+	clashv1 "github.com/clash-dev/clash/api/clash/v1"
+	"github.com/clash-dev/clash/internal/component/resolver"
+	"github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/listener"
+	"github.com/clash-dev/clash/internal/log"
+	"github.com/clash-dev/clash/internal/tunnel"
+	"github.com/clash-dev/clash/internal/tunnel/statistic"
 	"github.com/miekg/dns"
 	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	internalversion "github.com/Dreamacro/clash/internal/version"
+	internalversion "github.com/clash-dev/clash/internal/version"
 )
 
 type Controller struct {
@@ -284,4 +284,4 @@ func (c *Controller) QueryDNS(ctx context.Context, req *clashv1.QueryDNSRequest)
 }
 
 // For interface stubs generation. Do not remove.
-// c *Controller github.com/Dreamacro/clash/api/clash/v1.ClashServiceServer
+// c *Controller github.com/clash-dev/clash/api/clash/v1.ClashServiceServer

@@ -20,4 +20,4 @@ linters-settings:
   staticcheck:
     go: "1.21"
   goimports:
-    local-prefixes: github.com/Dreamacro/clash
+    local-prefixes: github.com/clash-dev/clash

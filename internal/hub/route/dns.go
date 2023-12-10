@@ -5,7 +5,7 @@ import (
 	"math"
 	"net/http"
 
-	"github.com/Dreamacro/clash/internal/component/resolver"
+	"github.com/clash-dev/clash/internal/component/resolver"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"

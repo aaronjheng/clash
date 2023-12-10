@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 
-	C "github.com/Dreamacro/clash/internal/constant"
+	C "github.com/clash-dev/clash/internal/constant"
 )
 
 type TLSConfig struct {

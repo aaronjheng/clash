@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Dreamacro/clash/internal/common/observable"
+	"github.com/clash-dev/clash/internal/common/observable"
 	"github.com/square/exit"
 )
 

@@ -3,7 +3,7 @@ package rules
 import (
 	"strings"
 
-	C "github.com/Dreamacro/clash/internal/constant"
+	C "github.com/clash-dev/clash/internal/constant"
 )
 
 // Implements C.Rule

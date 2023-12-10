@@ -16,9 +16,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/gorilla/websocket"
 
-	"github.com/Dreamacro/clash/internal/log"
-	"github.com/Dreamacro/clash/internal/tunnel/statistic"
-	"github.com/Dreamacro/clash/internal/version"
+	"github.com/clash-dev/clash/internal/log"
+	"github.com/clash-dev/clash/internal/tunnel/statistic"
+	"github.com/clash-dev/clash/internal/version"
 )
 
 var (

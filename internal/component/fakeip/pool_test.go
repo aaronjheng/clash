@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Dreamacro/clash/internal/component/profile/cachefile"
-	"github.com/Dreamacro/clash/internal/component/trie"
+	"github.com/clash-dev/clash/internal/component/profile/cachefile"
+	"github.com/clash-dev/clash/internal/component/trie"
 
 	"github.com/stretchr/testify/assert"
 	"go.etcd.io/bbolt"

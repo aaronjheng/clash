@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/Dreamacro/clash/internal/component/iface"
+	"github.com/clash-dev/clash/internal/component/iface"
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
 )

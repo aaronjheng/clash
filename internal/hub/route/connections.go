@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Dreamacro/clash/internal/tunnel/statistic"
+	"github.com/clash-dev/clash/internal/tunnel/statistic"
 
 	"github.com/Dreamacro/protobytes"
 	"github.com/go-chi/chi/v5"

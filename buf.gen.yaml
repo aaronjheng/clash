@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/Dreamacro/clash/api
+    default: github.com/clash-dev/clash/api
 plugins:
   - plugin: buf.build/protocolbuffers/go
     opt:

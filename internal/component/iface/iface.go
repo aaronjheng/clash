@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/internal/common/singledo"
+	"github.com/clash-dev/clash/internal/common/singledo"
 )
 
 type Interface struct {

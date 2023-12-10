@@ -14,11 +14,11 @@ import (
 	"github.com/square/exit"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/hub/executor"
-	"github.com/Dreamacro/clash/internal/log"
-	"github.com/Dreamacro/clash/internal/server"
-	internalversion "github.com/Dreamacro/clash/internal/version"
+	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/hub/executor"
+	"github.com/clash-dev/clash/internal/log"
+	"github.com/clash-dev/clash/internal/server"
+	internalversion "github.com/clash-dev/clash/internal/version"
 )
 
 var (

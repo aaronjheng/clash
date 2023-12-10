@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/Dreamacro/clash/internal/common/pool"
+	"github.com/clash-dev/clash/internal/common/pool"
 
 	"github.com/Dreamacro/protobytes"
 )

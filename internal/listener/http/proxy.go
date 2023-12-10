@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Dreamacro/clash/internal/adapter/inbound"
-	"github.com/Dreamacro/clash/internal/common/cache"
-	N "github.com/Dreamacro/clash/internal/common/net"
-	C "github.com/Dreamacro/clash/internal/constant"
-	authStore "github.com/Dreamacro/clash/internal/listener/auth"
-	"github.com/Dreamacro/clash/internal/log"
+	"github.com/clash-dev/clash/internal/adapter/inbound"
+	"github.com/clash-dev/clash/internal/common/cache"
+	N "github.com/clash-dev/clash/internal/common/net"
+	C "github.com/clash-dev/clash/internal/constant"
+	authStore "github.com/clash-dev/clash/internal/listener/auth"
+	"github.com/clash-dev/clash/internal/log"
 )
 
 func HandleConn(c net.Conn, in chan<- C.ConnContext, cache *cache.LruCache) {

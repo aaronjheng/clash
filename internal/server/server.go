@@ -11,11 +11,11 @@ import (
 	grpchealthv1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	clashv1 "github.com/Dreamacro/clash/api/clash/v1"
-	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/hub"
-	"github.com/Dreamacro/clash/internal/hub/executor"
-	"github.com/Dreamacro/clash/internal/log"
+	clashv1 "github.com/clash-dev/clash/api/clash/v1"
+	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/hub"
+	"github.com/clash-dev/clash/internal/hub/executor"
+	"github.com/clash-dev/clash/internal/log"
 )
 
 type Server struct {

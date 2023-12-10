@@ -3,7 +3,7 @@ package rules
 import (
 	"fmt"
 
-	C "github.com/Dreamacro/clash/internal/constant"
+	C "github.com/clash-dev/clash/internal/constant"
 )
 
 func ParseRule(tp, payload, target string, params []string) (C.Rule, error) {

@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/Dreamacro/clash/internal/component/iface"
+	"github.com/clash-dev/clash/internal/component/iface"
 
 	"golang.org/x/sys/windows"
 )
