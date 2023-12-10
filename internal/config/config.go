@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/samber/lo"
@@ -41,7 +40,6 @@ type General struct {
 // Controller
 type Controller struct {
 	ExternalController string `json:"-"`
-	ExternalUI         string `json:"-"`
 	Secret             string `json:"-"`
 }
 
@@ -199,7 +197,6 @@ type RawConfig struct {
 	LogLevel           log.LogLevel `yaml:"log-level"`
 	IPv6               bool         `yaml:"ipv6"`
 	ExternalController string       `yaml:"external-controller"`
-	ExternalUI         string       `yaml:"external-ui"`
 	Secret             string       `yaml:"secret"`
 	Interface          string       `yaml:"interface-name"`
 	RoutingMark        int          `yaml:"routing-mark"`
@@ -317,17 +314,6 @@ func ParseRawConfig(rawCfg *RawConfig) (*Config, error) {
 }
 
 func parseGeneral(cfg *RawConfig) (*General, error) {
-	externalUI := cfg.ExternalUI
-
-	// checkout externalUI exist
-	if externalUI != "" {
-		externalUI = C.Path.Resolve(externalUI)
-
-		if _, err := os.Stat(externalUI); os.IsNotExist(err) {
-			return nil, fmt.Errorf("external-ui: %s not exist", externalUI)
-		}
-	}
-
 	return &General{
 		LegacyInbound: LegacyInbound{
 			Port:        cfg.Port,
@@ -340,7 +326,6 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 		},
 		Controller: Controller{
 			ExternalController: cfg.ExternalController,
-			ExternalUI:         cfg.ExternalUI,
 			Secret:             cfg.Secret,
 		},
 		Mode:        cfg.Mode,
