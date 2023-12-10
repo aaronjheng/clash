@@ -1,8 +1,10 @@
 package server
 
 import (
-	"fmt"
-	"net"
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -10,6 +12,10 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	clashv1 "github.com/Dreamacro/clash/api/clash/v1"
+	C "github.com/Dreamacro/clash/internal/constant"
+	"github.com/Dreamacro/clash/internal/hub"
+	"github.com/Dreamacro/clash/internal/hub/executor"
+	"github.com/Dreamacro/clash/internal/log"
 )
 
 type Server struct {
@@ -32,15 +38,36 @@ func New() *Server {
 	return s
 }
 
-func (s *Server) Serve() error {
-	ln, err := net.Listen("tcp", ":7788")
-	if err != nil {
-		return fmt.Errorf("net.Listen error: %w", err)
+func (s *Server) Serve(ctx context.Context) error {
+	// ln, err := net.Listen("tcp", ":7788")
+	// if err != nil {
+	// 	return fmt.Errorf("net.Listen error: %w", err)
+	// }
+
+	// if err := s.grpc.Serve(ln); err != nil {
+	// 	return fmt.Errorf("grpc.Serve error: %w", err)
+	// }
+
+	ctx, cancelFunc := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := hub.Parse(); err != nil {
+		log.Fatalln("Parse config error: %s", err.Error())
 	}
 
-	if err := s.grpc.Serve(ln); err != nil {
-		return fmt.Errorf("grpc.Serve error: %w", err)
-	}
+	hupSigCh := make(chan os.Signal, 1)
+	signal.Notify(hupSigCh, syscall.SIGHUP)
 
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-hupSigCh:
+			if cfg, err := executor.ParseWithPath(C.Path.Config()); err == nil {
+				executor.ApplyConfig(cfg, true)
+			} else {
+				log.Errorln("Parse config error: %s", err.Error())
+			}
+		}
+	}
 }

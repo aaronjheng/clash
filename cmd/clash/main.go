@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime"
-	"syscall"
 	_ "time/tzdata"
 
 	_ "github.com/kr/pretty"
@@ -14,26 +14,25 @@ import (
 	"github.com/square/exit"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/Dreamacro/clash/internal/config"
 	C "github.com/Dreamacro/clash/internal/constant"
-	"github.com/Dreamacro/clash/internal/hub"
 	"github.com/Dreamacro/clash/internal/hub/executor"
 	"github.com/Dreamacro/clash/internal/log"
+	"github.com/Dreamacro/clash/internal/server"
 	internalversion "github.com/Dreamacro/clash/internal/version"
 )
 
 var (
-	version            bool
-	testConfig         bool
-	configFile         string
-	externalController string
-	secret             string
+	version    bool
+	testConfig bool
+	configFile string
 )
 
 func rootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "clash",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+
 			if version {
 				fmt.Printf("Clash %s %s %s with %s\n", internalversion.Version, runtime.GOOS, runtime.GOARCH, runtime.Version())
 				return nil
@@ -50,58 +49,39 @@ func rootCmd() *cobra.Command {
 				C.SetConfig(configFile)
 			}
 
-			if err := config.Init(C.Path.HomeDir(), C.Path.CacheDir(), C.Path.StateDir()); err != nil {
-				log.Fatalln("Initial configuration directory error: %s", err.Error())
-			}
-
 			if testConfig {
 				if _, err := executor.Parse(); err != nil {
 					log.Errorln(err.Error())
 					fmt.Printf("configuration file %s test failed\n", C.Path.Config())
-					os.Exit(1)
+					os.Exit(exit.NotOK)
 				}
-				fmt.Printf("configuration file %s test is successful\n", C.Path.Config())
+
+				fmt.Printf("configuration file %s test succeeded\n", C.Path.Config())
 				return nil
 			}
 
-			var options []hub.Option
-			if externalController != "" {
-				options = append(options, hub.WithExternalController(externalController))
-			}
-			if secret != "" {
-				options = append(options, hub.WithSecret(secret))
+			srv := server.New()
+
+			if err := srv.Bootstrap(C.Path.HomeDir(), C.Path.CacheDir(), C.Path.StateDir()); err != nil {
+				return fmt.Errorf("server bootstrap failed: %w", err)
 			}
 
-			if err := hub.Parse(options...); err != nil {
-				log.Fatalln("Parse config error: %s", err.Error())
-			}
-
-			// srv := server.New()
-			// if err := srv.Serve(); err != nil {
-			// 	return fmt.Errorf("server error: %w", err)
-			// }
-
-			termSign := make(chan os.Signal, 1)
-			hupSign := make(chan os.Signal, 1)
-			signal.Notify(termSign, syscall.SIGINT, syscall.SIGTERM)
-			signal.Notify(hupSign, syscall.SIGHUP)
-			for {
-				select {
-				case <-termSign:
-					return nil
-				case <-hupSign:
-					if cfg, err := executor.ParseWithPath(C.Path.Config()); err == nil {
-						executor.ApplyConfig(cfg, true)
-					} else {
-						log.Errorln("Parse config error: %s", err.Error())
-					}
+			if err := srv.Serve(ctx); err != nil {
+				if errors.Is(err, context.Canceled) {
+					log.Infoln("Clash Server stopped")
+				} else {
+					return fmt.Errorf("server error: %w", err)
 				}
 			}
+
+			return nil
 		},
 	}
 
 	flagSet := cmd.Flags()
 	flagSet.StringVarP(&configFile, "config", "f", "", "Configuration file path")
+	flagSet.BoolVarP(&version, "version", "V", false, "Clash version")
+	flagSet.BoolVarP(&testConfig, "test-config", "t", false, "Config testing")
 
 	return cmd
 }
