@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,7 +17,6 @@ import (
 
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/hub/executor"
-	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/server"
 	internalversion "github.com/clash-dev/clash/internal/version"
 )
@@ -34,7 +34,7 @@ func rootCmd() *cobra.Command {
 			ctx := cmd.Context()
 
 			if version {
-				fmt.Printf("Clash %s %s %s with %s\n", internalversion.Version, runtime.GOOS, runtime.GOARCH, runtime.Version())
+				fmt.Printf("Clash %s %s/%s with %s\n", internalversion.Version, runtime.GOOS, runtime.GOARCH, runtime.Version())
 				return nil
 			}
 
@@ -51,12 +51,12 @@ func rootCmd() *cobra.Command {
 
 			if testConfig {
 				if _, err := executor.Parse(); err != nil {
-					log.Errorln(err.Error())
-					fmt.Printf("configuration file %s test failed\n", C.Path.Config())
+					slog.Error("Configuration file test failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 					os.Exit(exit.NotOK)
 				}
 
-				fmt.Printf("configuration file %s test succeeded\n", C.Path.Config())
+				slog.Info("Configuration file test succeeded", slog.String("config", C.Path.Config()))
+
 				return nil
 			}
 
@@ -68,7 +68,7 @@ func rootCmd() *cobra.Command {
 
 			if err := srv.Serve(ctx); err != nil {
 				if errors.Is(err, context.Canceled) {
-					log.Infoln("Clash Server stopped")
+					slog.Info("Clash Server stopped")
 				} else {
 					return fmt.Errorf("server error: %w", err)
 				}
@@ -87,11 +87,19 @@ func rootCmd() *cobra.Command {
 }
 
 func main() {
+	// Logging
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
+	}))
+
+	slog.SetDefault(logger)
+
 	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
 
 	cmd := rootCmd()
 	if err := cmd.Execute(); err != nil {
-		log.Errorln("Clash failed: %v", err)
+		slog.Error("Clash command failed", slog.Any("error", err))
 
 		os.Exit(exit.NotOK)
 	}

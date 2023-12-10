@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +17,6 @@ import (
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/hub"
 	"github.com/clash-dev/clash/internal/hub/executor"
-	"github.com/clash-dev/clash/internal/log"
 )
 
 type Server struct {
@@ -52,7 +53,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	defer cancelFunc()
 
 	if err := hub.Parse(); err != nil {
-		log.Fatalln("Parse config error: %s", err.Error())
+		return fmt.Errorf("hub.Parse error: %w", err)
 	}
 
 	hupSigCh := make(chan os.Signal, 1)
@@ -66,7 +67,7 @@ func (s *Server) Serve(ctx context.Context) error {
 			if cfg, err := executor.ParseWithPath(C.Path.Config()); err == nil {
 				executor.ApplyConfig(cfg, true)
 			} else {
-				log.Errorln("Parse config error: %s", err.Error())
+				slog.Error("Parse config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 			}
 		}
 	}

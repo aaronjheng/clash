@@ -5,18 +5,10 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/clash-dev/clash/internal/common/observable"
 	"github.com/square/exit"
+
+	"github.com/clash-dev/clash/internal/common/observable"
 )
-
-func init() {
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     slog.LevelDebug,
-	}))
-
-	slog.SetDefault(logger)
-}
 
 var (
 	logCh  = make(chan any)

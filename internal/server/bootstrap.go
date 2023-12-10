@@ -3,12 +3,12 @@ package server
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/clash-dev/clash/internal/component/mmdb"
 	C "github.com/clash-dev/clash/internal/constant"
-	"github.com/clash-dev/clash/internal/log"
 )
 
 func (s *Server) Bootstrap(dir string, cacheDir string, stateDir string) error {
@@ -21,7 +21,7 @@ func (s *Server) Bootstrap(dir string, cacheDir string, stateDir string) error {
 
 	// initial config.yaml
 	if _, err := os.Stat(C.Path.Config()); os.IsNotExist(err) {
-		log.Infoln("Can't find config, create a initial config file")
+		slog.Info("Config file not found. Create a new config file")
 		f, err := os.OpenFile(C.Path.Config(), os.O_CREATE|os.O_WRONLY, 0o644)
 		if err != nil {
 			return fmt.Errorf("can't create file %s: %s", C.Path.Config(), err.Error())
@@ -71,14 +71,14 @@ func downloadMMDB(path string) (err error) {
 
 func initMMDB() error {
 	if _, err := os.Stat(C.Path.MMDB()); os.IsNotExist(err) {
-		log.Infoln("Can't find MMDB, start download")
+		slog.Info("MMDB not found. Start download")
 		if err := downloadMMDB(C.Path.MMDB()); err != nil {
 			return fmt.Errorf("can't download MMDB: %s", err.Error())
 		}
 	}
 
 	if !mmdb.Verify() {
-		log.Warnln("MMDB invalid, remove and download")
+		slog.Info("MMDB invalid. Remove and download")
 		if err := os.Remove(C.Path.MMDB()); err != nil {
 			return fmt.Errorf("can't remove invalid MMDB: %s", err.Error())
 		}

@@ -3,8 +3,15 @@ package server
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"time"
+
+	"github.com/miekg/dns"
+	"github.com/samber/lo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	clashv1 "github.com/clash-dev/clash/api/clash/v1"
 	"github.com/clash-dev/clash/internal/component/resolver"
@@ -13,12 +20,6 @@ import (
 	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/tunnel"
 	"github.com/clash-dev/clash/internal/tunnel/statistic"
-	"github.com/miekg/dns"
-	"github.com/samber/lo"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
-
 	internalversion "github.com/clash-dev/clash/internal/version"
 )
 
@@ -33,10 +34,12 @@ func (c *Controller) Version(_ context.Context, _ *emptypb.Empty) (*clashv1.Vers
 }
 
 func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream clashv1.ClashService_SubscribeLogsServer) error {
+	ctx := stream.Context()
+
 	ch := make(chan log.Event, 1024)
 
 	defer func() {
-		log.Infoln("Log subscriber exit")
+		slog.InfoContext(ctx, "Log subscriber exit")
 	}()
 
 	sub := log.Subscribe()
@@ -52,8 +55,6 @@ func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream cla
 		}
 		close(ch)
 	}()
-
-	ctx := stream.Context()
 
 	for {
 		select {
@@ -73,10 +74,12 @@ func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream cla
 }
 
 func (c *Controller) SubscribeTraffics(_ *emptypb.Empty, stream clashv1.ClashService_SubscribeTrafficsServer) error {
+	ctx := stream.Context()
+
 	ch := make(chan log.Event, 1024)
 
 	defer func() {
-		log.Infoln("Traffic subscriber exit")
+		slog.InfoContext(ctx, "Traffic subscriber exit")
 	}()
 
 	sub := log.Subscribe()
@@ -97,7 +100,6 @@ func (c *Controller) SubscribeTraffics(_ *emptypb.Empty, stream clashv1.ClashSer
 
 	ticker := time.NewTicker(time.Second)
 
-	ctx := stream.Context()
 	for {
 		select {
 		case <-ctx.Done():
@@ -171,6 +173,12 @@ func (c *Controller) BatchUpdateInbounds(ctx context.Context, req *clashv1.Batch
 }
 
 func (c *Controller) SubscribeConnections(req *clashv1.SubscribeConnectionsRequest, stream clashv1.ClashService_SubscribeConnectionsServer) error {
+	ctx := stream.Context()
+
+	defer func() {
+		slog.InfoContext(ctx, "Connection subscriber exit")
+	}()
+
 	interval := req.GetInternal()
 	ticker := time.NewTicker(interval.AsDuration())
 
@@ -188,7 +196,6 @@ func (c *Controller) SubscribeConnections(req *clashv1.SubscribeConnectionsReque
 		return resp
 	}
 
-	ctx := stream.Context()
 	for {
 		select {
 		case <-ctx.Done():
