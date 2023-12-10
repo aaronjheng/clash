@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/url"
 	"strings"
@@ -28,19 +29,13 @@ import (
 // General config
 type General struct {
 	LegacyInbound
-	Controller
 	Authentication []string     `json:"authentication"`
 	Mode           T.TunnelMode `json:"mode"`
-	LogLevel       log.LogLevel `json:"log-level"`
+	Logging        *log.Config  `json:"logging"`
 	IPv6           bool         `json:"ipv6"`
 	Interface      string       `json:"-"`
 	RoutingMark    int          `json:"-"`
-}
-
-// Controller
-type Controller struct {
-	ExternalController string `json:"-"`
-	Secret             string `json:"-"`
+	APIAddr        string       `json:"-"`
 }
 
 type LegacyInbound struct {
@@ -185,22 +180,21 @@ func (t *Tunnel) UnmarshalYAML(unmarshal func(any) error) error {
 }
 
 type RawConfig struct {
-	Port               int          `yaml:"port"`
-	SocksPort          int          `yaml:"socks-port"`
-	RedirPort          int          `yaml:"redir-port"`
-	TProxyPort         int          `yaml:"tproxy-port"`
-	MixedPort          int          `yaml:"mixed-port"`
-	Authentication     []string     `yaml:"authentication"`
-	AllowLan           bool         `yaml:"allow-lan"`
-	BindAddress        string       `yaml:"bind-address"`
-	Mode               T.TunnelMode `yaml:"mode"`
-	LogLevel           log.LogLevel `yaml:"log-level"`
-	IPv6               bool         `yaml:"ipv6"`
-	ExternalController string       `yaml:"external-controller"`
-	Secret             string       `yaml:"secret"`
-	Interface          string       `yaml:"interface-name"`
-	RoutingMark        int          `yaml:"routing-mark"`
-	Tunnels            []Tunnel     `yaml:"tunnels"`
+	Port           int          `yaml:"port"`
+	SocksPort      int          `yaml:"socks-port"`
+	RedirPort      int          `yaml:"redir-port"`
+	TProxyPort     int          `yaml:"tproxy-port"`
+	MixedPort      int          `yaml:"mixed-port"`
+	Authentication []string     `yaml:"authentication"`
+	AllowLan       bool         `yaml:"allow-lan"`
+	BindAddress    string       `yaml:"bind-address"`
+	Mode           T.TunnelMode `yaml:"mode"`
+	Logging        *log.Config  `yaml:"logging"`
+	IPv6           bool         `yaml:"ipv6"`
+	APIAddr        string       `yaml:"api_address"`
+	Interface      string       `yaml:"interface-name"`
+	RoutingMark    int          `yaml:"routing-mark"`
+	Tunnels        []Tunnel     `yaml:"tunnels"`
 
 	ProxyProvider map[string]map[string]any `yaml:"proxy-providers"`
 	Hosts         map[string]string         `yaml:"hosts"`
@@ -230,11 +224,13 @@ func UnmarshalRawConfig(buf []byte) (*RawConfig, error) {
 		BindAddress:    "*",
 		Mode:           T.Rule,
 		Authentication: []string{},
-		LogLevel:       log.INFO,
-		Hosts:          map[string]string{},
-		Rule:           []string{},
-		Proxy:          []map[string]any{},
-		ProxyGroup:     []map[string]any{},
+		Logging: &log.Config{
+			Level: slog.LevelInfo,
+		},
+		Hosts:      map[string]string{},
+		Rule:       []string{},
+		Proxy:      []map[string]any{},
+		ProxyGroup: []map[string]any{},
 		DNS: RawDNS{
 			Enable:      false,
 			UseHosts:    true,
@@ -324,12 +320,9 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 			AllowLan:    cfg.AllowLan,
 			BindAddress: cfg.BindAddress,
 		},
-		Controller: Controller{
-			ExternalController: cfg.ExternalController,
-			Secret:             cfg.Secret,
-		},
+		APIAddr:     cfg.APIAddr,
 		Mode:        cfg.Mode,
-		LogLevel:    cfg.LogLevel,
+		Logging:     cfg.Logging,
 		IPv6:        cfg.IPv6,
 		Interface:   cfg.Interface,
 		RoutingMark: cfg.RoutingMark,

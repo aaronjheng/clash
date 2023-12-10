@@ -98,7 +98,6 @@ func GetGeneral() *config.General {
 		},
 		Authentication: authenticator,
 		Mode:           tunnel.Mode(),
-		LogLevel:       log.Level(),
 		IPv6:           !resolver.DisableIPv6,
 	}
 
@@ -176,7 +175,8 @@ func updateInbounds(inbounds []C.Inbound, force bool) {
 }
 
 func updateGeneral(general *config.General, force bool) {
-	log.SetLevel(general.LogLevel)
+	log.SetLevel(general.Logging.Level)
+
 	tunnel.SetMode(general.Mode)
 	resolver.DisableIPv6 = !general.IPv6
 

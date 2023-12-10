@@ -17,6 +17,7 @@ import (
 
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/hub/executor"
+	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/server"
 	internalversion "github.com/clash-dev/clash/internal/version"
 )
@@ -88,12 +89,7 @@ func rootCmd() *cobra.Command {
 
 func main() {
 	// Logging
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource: true,
-		Level:     slog.LevelDebug,
-	}))
-
-	slog.SetDefault(logger)
+	log.Setup()
 
 	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
 

@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	grpchealthv1 "google.golang.org/grpc/health/grpc_health_v1"
@@ -15,7 +17,6 @@ import (
 
 	clashv1 "github.com/clash-dev/clash/api/clash/v1"
 	C "github.com/clash-dev/clash/internal/constant"
-	"github.com/clash-dev/clash/internal/hub"
 	"github.com/clash-dev/clash/internal/hub/executor"
 )
 
@@ -40,35 +41,73 @@ func New() *Server {
 }
 
 func (s *Server) Serve(ctx context.Context) error {
-	// ln, err := net.Listen("tcp", ":7788")
-	// if err != nil {
-	// 	return fmt.Errorf("net.Listen error: %w", err)
-	// }
-
-	// if err := s.grpc.Serve(ln); err != nil {
-	// 	return fmt.Errorf("grpc.Serve error: %w", err)
-	// }
-
 	ctx, cancelFunc := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer cancelFunc()
 
-	if err := hub.Parse(); err != nil {
-		return fmt.Errorf("hub.Parse error: %w", err)
+	cfg, err := executor.Parse()
+	if err != nil {
+		return fmt.Errorf("executor.Parse error: %w", err)
 	}
 
-	hupSigCh := make(chan os.Signal, 1)
-	signal.Notify(hupSigCh, syscall.SIGHUP)
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		addr := cfg.General.APIAddr
 
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-hupSigCh:
-			if cfg, err := executor.ParseWithPath(C.Path.Config()); err == nil {
+		if addr == "" {
+			slog.Info("No API address specified.")
+		}
+
+		ln, err := net.Listen("tcp", addr)
+		if err != nil {
+			return fmt.Errorf("net.Listen error: %w", err)
+		}
+
+		slog.Info("API Server listening", slog.String("address", addr))
+
+		if err := s.grpc.Serve(ln); err != nil {
+			return fmt.Errorf("grpc.Serve error: %w", err)
+		}
+
+		slog.Info("API Server stopped")
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		executor.ApplyConfig(cfg, true)
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		<-ctx.Done()
+
+		s.grpc.GracefulStop()
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		hupSigCh := make(chan os.Signal, 1)
+		signal.Notify(hupSigCh, syscall.SIGHUP)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-hupSigCh:
+				slog.Info("Reload config file")
+				cfg, err := executor.ParseWithPath(C.Path.Config())
+				if err != nil {
+					slog.Error("Reload config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
+					break
+				}
+
 				executor.ApplyConfig(cfg, true)
-			} else {
-				slog.Error("Parse config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
+				slog.Info("Reload config file succeeded")
 			}
 		}
-	}
+	})
+
+	return eg.Wait()
 }

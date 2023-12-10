@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -13,11 +14,11 @@ import (
 var (
 	logCh  = make(chan any)
 	source = observable.NewObservable(logCh)
-	level  = INFO
+	level  = &slog.LevelVar{}
 )
 
 type Event struct {
-	LogLevel LogLevel
+	LogLevel slog.Level
 	Payload  string
 }
 
@@ -26,25 +27,25 @@ func (e *Event) Type() string {
 }
 
 func Infoln(format string, v ...any) {
-	event := newLog(INFO, format, v...)
+	event := newLog(slog.LevelInfo, format, v...)
 	logCh <- event
 	print(event)
 }
 
 func Warnln(format string, v ...any) {
-	event := newLog(WARNING, format, v...)
+	event := newLog(slog.LevelWarn, format, v...)
 	logCh <- event
 	print(event)
 }
 
 func Errorln(format string, v ...any) {
-	event := newLog(ERROR, format, v...)
+	event := newLog(slog.LevelError, format, v...)
 	logCh <- event
 	print(event)
 }
 
 func Debugln(format string, v ...any) {
-	event := newLog(DEBUG, format, v...)
+	event := newLog(slog.LevelDebug, format, v...)
 	logCh <- event
 	print(event)
 }
@@ -63,36 +64,29 @@ func UnSubscribe(sub observable.Subscription) {
 	source.UnSubscribe(sub)
 }
 
-func Level() LogLevel {
-	return level
+func Level() slog.Level {
+	return level.Level()
 }
 
-func SetLevel(newLevel LogLevel) {
-	level = newLevel
+func SetLevel(lvl slog.Level) {
+	level.Set(lvl)
 }
 
 func print(data Event) {
-	if data.LogLevel < level {
-		return
-	}
-
-	switch data.LogLevel {
-	case DEBUG:
-		slog.Debug(data.Payload)
-	case INFO:
-		slog.Info(data.Payload)
-	case WARNING:
-		slog.Warn(data.Payload)
-	case ERROR:
-		slog.Error(data.Payload)
-	case SILENT:
-		return
-	}
+	slog.Log(context.Background(), data.LogLevel, data.Payload)
 }
 
-func newLog(logLevel LogLevel, format string, v ...any) Event {
+func newLog(logLevel slog.Level, format string, v ...any) Event {
 	return Event{
 		LogLevel: logLevel,
 		Payload:  fmt.Sprintf(format, v...),
 	}
+}
+
+func Setup() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: level,
+	}))
+
+	slog.SetDefault(logger)
 }
