@@ -1,0 +1,14 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/Dreamacro/clash/api
+plugins:
+  - plugin: buf.build/protocolbuffers/go
+    opt:
+      - paths=source_relative
+    out: api
+  - plugin: buf.build/grpc/go
+    opt:
+      - paths=source_relative
+    out: api

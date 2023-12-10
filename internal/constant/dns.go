@@ -13,7 +13,7 @@ var DNSModeMapping = map[string]DNSMode{
 }
 
 const (
-	DNSNormal DNSMode = iota
+	DNSNormal DNSMode = iota + 1
 	DNSFakeIP
 	DNSMapping
 )

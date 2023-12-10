@@ -3,7 +3,6 @@ package hub
 import (
 	"github.com/Dreamacro/clash/internal/config"
 	"github.com/Dreamacro/clash/internal/hub/executor"
-	"github.com/Dreamacro/clash/internal/hub/route"
 )
 
 type Option func(*config.Config)
@@ -29,10 +28,6 @@ func Parse(options ...Option) error {
 
 	for _, option := range options {
 		option(cfg)
-	}
-
-	if cfg.General.ExternalController != "" {
-		go route.Start(cfg.General.ExternalController, cfg.General.Secret)
 	}
 
 	executor.ApplyConfig(cfg, true)

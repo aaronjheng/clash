@@ -11,10 +11,12 @@ import (
 
 // Socks addr type
 const (
-	TCP NetWork = iota
+	TCP NetWork = iota + 1
 	UDP
+)
 
-	HTTP Type = iota
+const (
+	HTTP Type = iota + 1
 	HTTPCONNECT
 	SOCKS4
 	SOCKS5
@@ -29,6 +31,7 @@ func (n NetWork) String() string {
 	if n == TCP {
 		return "tcp"
 	}
+
 	return "udp"
 }
 

@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package clash.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service ClashService {
+  rpc SubscribeLogs(SubscribeLogsRequest) returns (stream LogRecord);
+  rpc SubscribeTraffics(google.protobuf.Empty) returns (stream Traffic);
+  rpc SubscribeConnections(SubscribeConnectionsRequest) returns (stream SubscribeConnectionsResponse);
+
+  rpc Version(google.protobuf.Empty) returns (VersionResponse);
+  rpc ListRules(google.protobuf.Empty) returns (ListRulesResponse);
+  rpc ListInbounds(google.protobuf.Empty) returns (ListInboundsResponse);
+  rpc BatchUpdateInbounds(BatchUpdateInboundsRequest) returns (google.protobuf.Empty);
+  rpc DeleteConnection(DeleteConnectionRequest) returns (google.protobuf.Empty);
+  rpc CloseAllConnections(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc QueryDNS(QueryDNSRequest) returns (QueryDNSResponse);
+}
+
+message VersionResponse {
+  string version = 1;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_DEBUG = 1;
+  LOG_LEVEL_INFO = 2;
+  LOG_LEVEL_WARN = 3;
+  LOG_LEVEL_ERROR = 4;
+}
+
+message SubscribeLogsRequest {
+  LogLevel level = 1;
+}
+
+message LogRecord {
+  string payload = 1;
+}
+
+message Traffic {
+  int64 up = 1;
+  int64 down = 2;
+}
+
+message ListRulesResponse {
+  message Rule {
+    string type = 1;
+    string payload = 2;
+    string proxy = 3;
+  }
+
+  repeated Rule rules = 1;
+}
+
+message ListInboundsResponse {
+  message Inbound {
+    string type = 1;
+    string bind_address = 2;
+  }
+
+  repeated Inbound inbounds = 1;
+}
+
+message BatchUpdateInboundsRequest {
+  message Inbound {
+    string type = 1;
+    string bind_address = 2;
+  }
+
+  repeated Inbound inbounds = 1;
+}
+
+message SubscribeConnectionsRequest {
+  google.protobuf.Duration internal = 1;
+}
+
+enum Network {
+  NETWORK_UNSPECIFIED = 0;
+  NETWORK_TCP = 1;
+  NETWORK_UDP = 2;
+}
+
+enum ConnectionType {
+  CONNECTION_TYPE_UNSPECIFIED = 0;
+  CONNECTION_TYPE_HTTP = 1;
+  CONNECTION_TYPE_HTTP_CONNECT = 2;
+  CONNECTION_TYPE_SOCKS4 = 3;
+  CONNECTION_TYPE_SOCKS5 = 4;
+  CONNECTION_TYPE_REDIR = 5;
+  CONNECTION_TYPE_TPROXY = 6;
+  CONNECTION_TYPE_TUNNEL = 7;
+}
+
+enum DNSMode {
+  DNS_MODE_UNSPECIFIED = 0;
+  DNS_MODE_NORMAL = 1;
+  DNS_MODE_FAKE_IP = 2;
+  DNS_MODE_MAPPING = 3;
+}
+
+message SubscribeConnectionsResponse {
+  message Metadata {
+    string network = 1;
+    ConnectionType type = 2;
+    string source_ip = 3;
+    string destination_ip = 4;
+    int64 source_port = 5;
+    int64 destination_port = 6;
+    string host = 7;
+    DNSMode dns_mode = 8;
+    string process_path = 9;
+    string special_proxy = 10;
+  }
+
+  message Rule {
+    string name = 1;
+    string payload = 2;
+  }
+
+  message Connection {
+    string id = 1;
+    Metadata metadata = 2;
+    int64 upload_total = 3;
+    int64 download_total = 4;
+    google.protobuf.Timestamp start_time = 5;
+    repeated string chains = 6;
+    Rule rules = 7;
+  }
+
+  int64 download_total = 1;
+  int64 upload_total = 2;
+
+  repeated Connection connections = 3;
+}
+
+message DeleteConnectionRequest {
+  string id = 1;
+}
+
+message QueryDNSRequest {
+  string name = 1;
+  string type = 2;
+}
+
+message QueryDNSResponse {
+  message Question {
+    string name = 1;
+    int32 type = 2;
+    int32 class = 3;
+  }
+
+  message Answer {
+    string name = 1;
+    int32 type = 2;
+    int64 ttl = 3;
+    string data = 4;
+  }
+
+  int32 status = 1;
+  repeated Question question = 2;
+  bool truncated = 3;
+  bool recursion_desired = 4;
+  bool recursion_available = 5;
+  bool authenticated_data = 6;
+  bool checking_disabled = 7;
+  repeated Answer answer = 8;
+  repeated Answer authority = 9;
+}

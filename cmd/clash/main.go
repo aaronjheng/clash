@@ -76,6 +76,11 @@ func rootCmd() *cobra.Command {
 				log.Fatalln("Parse config error: %s", err.Error())
 			}
 
+			// srv := server.New()
+			// if err := srv.Serve(); err != nil {
+			// 	return fmt.Errorf("server error: %w", err)
+			// }
+
 			termSign := make(chan os.Signal, 1)
 			hupSign := make(chan os.Signal, 1)
 			signal.Notify(termSign, syscall.SIGINT, syscall.SIGTERM)
