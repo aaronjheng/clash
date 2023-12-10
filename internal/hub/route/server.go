@@ -83,7 +83,7 @@ func Start(addr string, secret string) {
 	}
 }
 
-func safeEuqal(a, b string) bool {
+func safeEqual(a, b string) bool {
 	aBuf := unsafe.Slice(unsafe.StringData(a), len(a))
 	bBuf := unsafe.Slice(unsafe.StringData(b), len(b))
 	return subtle.ConstantTimeCompare(aBuf, bBuf) == 1
@@ -99,7 +99,7 @@ func authentication(next http.Handler) http.Handler {
 		// Browser websocket not support custom header
 		if websocket.IsWebSocketUpgrade(r) && r.URL.Query().Get("token") != "" {
 			token := r.URL.Query().Get("token")
-			if !safeEuqal(token, serverSecret) {
+			if !safeEqual(token, serverSecret) {
 				render.Status(r, http.StatusUnauthorized)
 				render.JSON(w, r, ErrUnauthorized)
 				return
@@ -112,7 +112,7 @@ func authentication(next http.Handler) http.Handler {
 		bearer, token, found := strings.Cut(header, " ")
 
 		hasInvalidHeader := bearer != "Bearer"
-		hasInvalidSecret := !found || !safeEuqal(token, serverSecret)
+		hasInvalidSecret := !found || !safeEqual(token, serverSecret)
 		if hasInvalidHeader || hasInvalidSecret {
 			render.Status(r, http.StatusUnauthorized)
 			render.JSON(w, r, ErrUnauthorized)

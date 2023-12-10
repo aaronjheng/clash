@@ -69,8 +69,6 @@ func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream cla
 			}
 		}
 	}
-
-	return nil
 }
 
 func (c *Controller) SubscribeTraffics(_ *emptypb.Empty, stream clashv1.ClashService_SubscribeTrafficsServer) error {
@@ -116,8 +114,6 @@ func (c *Controller) SubscribeTraffics(_ *emptypb.Empty, stream clashv1.ClashSer
 			}
 		}
 	}
-
-	return nil
 }
 
 func (c *Controller) ListRules(_ context.Context, _ *emptypb.Empty) (*clashv1.ListRulesResponse, error) {
