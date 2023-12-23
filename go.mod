@@ -7,9 +7,6 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/clash-dev/clash/api v0.0.0
 	github.com/dlclark/regexp2 v1.10.0
-	github.com/go-chi/chi/v5 v5.0.10
-	github.com/go-chi/cors v1.2.1
-	github.com/go-chi/render v1.0.3
 	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/insomniacslk/dhcp v0.0.0-20231126010706-b0416c0f187a
@@ -25,6 +22,7 @@ require (
 	go.etcd.io/bbolt v1.3.8
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.5.3
+	go.uber.org/multierr v1.11.0
 	golang.org/x/crypto v0.16.0
 	golang.org/x/net v0.19.0
 	golang.org/x/sync v0.5.0
@@ -35,7 +33,6 @@ require (
 )
 
 require (
-	github.com/ajg/form v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -50,7 +47,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/u-root/uio v0.0.0-20230305220412-3e8cd9d6bf63 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20231127185646-65229373498e // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

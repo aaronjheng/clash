@@ -78,6 +78,7 @@ func (s *Server) Serve(ctx context.Context) error {
 
 		if addr == "" {
 			s.logger.Info("No API address specified.")
+			return nil
 		}
 
 		ln, err := net.Listen("tcp", addr)
