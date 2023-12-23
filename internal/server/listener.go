@@ -12,6 +12,7 @@ import (
 	"github.com/clash-dev/clash/internal/config"
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/listener"
+	"github.com/clash-dev/clash/internal/listener/driver"
 	"github.com/clash-dev/clash/internal/listener/tunnel"
 	"github.com/clash-dev/clash/internal/log"
 )
@@ -20,8 +21,8 @@ type ListenerManager struct {
 	allowLan    bool
 	bindAddress string
 
-	tcpListeners map[C.Inbound]C.Listener
-	udpListeners map[C.Inbound]C.Listener
+	tcpListeners map[C.Inbound]driver.Listener
+	udpListeners map[C.Inbound]driver.Listener
 
 	tunnelTCPListeners map[string]*tunnel.Listener
 	tunnelUDPListeners map[string]*tunnel.PacketConn
@@ -35,8 +36,8 @@ func NewListenerManager() *ListenerManager {
 	return &ListenerManager{
 		allowLan:           false,
 		bindAddress:        "*",
-		tcpListeners:       map[C.Inbound]C.Listener{},
-		udpListeners:       map[C.Inbound]C.Listener{},
+		tcpListeners:       map[C.Inbound]driver.Listener{},
+		udpListeners:       map[C.Inbound]driver.Listener{},
 		tunnelTCPListeners: map[string]*tunnel.Listener{},
 		tunnelUDPListeners: map[string]*tunnel.PacketConn{},
 	}
@@ -134,7 +135,7 @@ func (l *ListenerManager) reCreateListeners(inbounds []C.Inbound, tcpIn chan<- C
 	}
 
 	for _, inbound := range needCreate {
-		tcpListener, udpListener, err := listener.New(inbound, tcpIn, udpIn)
+		tcpListener, udpListener, err := listener.OpenListener(inbound, tcpIn, udpIn)
 		if err != nil {
 			slog.Error("Create listener failed", slog.Any("error", err))
 		}

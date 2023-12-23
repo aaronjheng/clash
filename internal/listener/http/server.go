@@ -5,6 +5,7 @@ import (
 
 	"github.com/clash-dev/clash/internal/common/cache"
 	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/listener/driver"
 )
 
 type Listener struct {
@@ -29,11 +30,11 @@ func (l *Listener) Close() error {
 	return l.listener.Close()
 }
 
-func New(addr string, in chan<- C.ConnContext) (C.Listener, error) {
+func NewTCP(addr string, in chan<- C.ConnContext) (driver.Listener, error) {
 	return NewWithAuthenticate(addr, in, true)
 }
 
-func NewWithAuthenticate(addr string, in chan<- C.ConnContext, authenticate bool) (C.Listener, error) {
+func NewWithAuthenticate(addr string, in chan<- C.ConnContext, authenticate bool) (driver.Listener, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err

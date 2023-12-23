@@ -7,6 +7,7 @@ import (
 	"github.com/clash-dev/clash/internal/adapter/inbound"
 	"github.com/clash-dev/clash/internal/common/pool"
 	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/listener/driver"
 	"github.com/clash-dev/clash/internal/transport/socks5"
 )
 
@@ -32,7 +33,7 @@ func (l *UDPListener) Close() error {
 	return l.packetConn.Close()
 }
 
-func NewUDP(addr string, in chan<- *inbound.PacketAdapter) (C.Listener, error) {
+func NewUDP(addr string, in chan<- *inbound.PacketAdapter) (driver.Listener, error) {
 	l, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		return nil, err

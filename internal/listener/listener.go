@@ -7,6 +7,7 @@ import (
 
 	"github.com/clash-dev/clash/internal/adapter/inbound"
 	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/listener/driver"
 	"github.com/clash-dev/clash/internal/listener/http"
 	"github.com/clash-dev/clash/internal/listener/mixed"
 	"github.com/clash-dev/clash/internal/listener/redir"
@@ -15,11 +16,11 @@ import (
 )
 
 var tcpListenerCreators = map[C.InboundType]tcpListenerCreator{
-	C.InboundTypeHTTP:   http.New,
-	C.InboundTypeSocks:  socks.New,
-	C.InboundTypeRedir:  redir.New,
-	C.InboundTypeTproxy: tproxy.New,
-	C.InboundTypeMixed:  mixed.New,
+	C.InboundTypeHTTP:   http.NewTCP,
+	C.InboundTypeSocks:  socks.NewTCP,
+	C.InboundTypeRedir:  redir.NewTCP,
+	C.InboundTypeTproxy: tproxy.NewTCP,
+	C.InboundTypeMixed:  mixed.NewTCP,
 }
 
 var udpListenerCreators = map[C.InboundType]udpListenerCreator{
@@ -30,8 +31,8 @@ var udpListenerCreators = map[C.InboundType]udpListenerCreator{
 }
 
 type (
-	tcpListenerCreator func(addr string, tcpIn chan<- C.ConnContext) (C.Listener, error)
-	udpListenerCreator func(addr string, udpIn chan<- *inbound.PacketAdapter) (C.Listener, error)
+	tcpListenerCreator func(addr string, tcpIn chan<- C.ConnContext) (driver.Listener, error)
+	udpListenerCreator func(addr string, udpIn chan<- *inbound.PacketAdapter) (driver.Listener, error)
 )
 
 var (
@@ -39,7 +40,7 @@ var (
 	ErrUnsupportedInboundType = errors.New("unsupported inbound type")
 )
 
-func New(inbound C.Inbound, tcpIn chan<- C.ConnContext, udpIn chan<- *inbound.PacketAdapter) (C.Listener, C.Listener, error) {
+func OpenListener(inbound C.Inbound, tcpIn chan<- C.ConnContext, udpIn chan<- *inbound.PacketAdapter) (driver.Listener, driver.Listener, error) {
 	addr := inbound.BindAddress
 	if portIsZero(addr) {
 		return nil, nil, ErrInvalidPort
@@ -51,7 +52,7 @@ func New(inbound C.Inbound, tcpIn chan<- C.ConnContext, udpIn chan<- *inbound.Pa
 		return nil, nil, ErrUnsupportedInboundType
 	}
 
-	var tcpListener, udpListener C.Listener
+	var tcpListener, udpListener driver.Listener
 
 	if tcpCreator != nil {
 		var err error

@@ -7,12 +7,6 @@ import (
 	"strconv"
 )
 
-type Listener interface {
-	RawAddress() string
-	Address() string
-	Close() error
-}
-
 type InboundType string
 
 const (

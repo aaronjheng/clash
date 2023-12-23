@@ -6,6 +6,7 @@ import (
 	"github.com/clash-dev/clash/internal/common/cache"
 	N "github.com/clash-dev/clash/internal/common/net"
 	C "github.com/clash-dev/clash/internal/constant"
+	"github.com/clash-dev/clash/internal/listener/driver"
 	"github.com/clash-dev/clash/internal/listener/http"
 	"github.com/clash-dev/clash/internal/listener/socks"
 	"github.com/clash-dev/clash/internal/transport/socks4"
@@ -35,7 +36,7 @@ func (l *Listener) Close() error {
 	return l.listener.Close()
 }
 
-func New(addr string, in chan<- C.ConnContext) (C.Listener, error) {
+func NewTCP(addr string, in chan<- C.ConnContext) (driver.Listener, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
