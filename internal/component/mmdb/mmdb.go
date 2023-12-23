@@ -19,7 +19,7 @@ func LoadFromBytes(buffer []byte) {
 		var err error
 		mmdb, err = geoip2.FromBytes(buffer)
 		if err != nil {
-			log.Fatalln("Can't load mmdb: %s", err.Error())
+			log.Errorln("Can't load mmdb: %s", err.Error())
 		}
 	})
 }

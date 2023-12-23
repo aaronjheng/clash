@@ -9,7 +9,6 @@ import (
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/hub/executor"
 	"github.com/clash-dev/clash/internal/listener"
-	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/tunnel"
 
 	"github.com/go-chi/chi/v5"
@@ -40,7 +39,6 @@ func patchConfigs(w http.ResponseWriter, r *http.Request) {
 		AllowLan    *bool              `json:"allow-lan"`
 		BindAddress *string            `json:"bind-address"`
 		Mode        *tunnel.TunnelMode `json:"mode"`
-		LogLevel    *log.LogLevel      `json:"log-level"`
 		IPv6        *bool              `json:"ipv6"`
 	}{}
 	if err := render.DecodeJSON(r.Body, &general); err != nil {
@@ -51,10 +49,6 @@ func patchConfigs(w http.ResponseWriter, r *http.Request) {
 
 	if general.Mode != nil {
 		tunnel.SetMode(*general.Mode)
-	}
-
-	if general.LogLevel != nil {
-		log.SetLevel(*general.LogLevel)
 	}
 
 	if general.IPv6 != nil {

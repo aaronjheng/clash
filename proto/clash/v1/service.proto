@@ -19,6 +19,8 @@ service ClashService {
   rpc DeleteConnection(DeleteConnectionRequest) returns (google.protobuf.Empty);
   rpc CloseAllConnections(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc QueryDNS(QueryDNSRequest) returns (QueryDNSResponse);
+
+
 }
 
 message VersionResponse {

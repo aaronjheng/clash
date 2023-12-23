@@ -16,28 +16,51 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	clashv1 "github.com/clash-dev/clash/api/clash/v1"
+	"github.com/clash-dev/clash/internal/common/observable"
+	"github.com/clash-dev/clash/internal/config"
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/hub/executor"
+	"github.com/clash-dev/clash/internal/log"
 )
 
-type Server struct {
-	grpc *grpc.Server
+type ServerOption struct {
+	LoggerProvider *log.LoggerProvider
 }
 
-func New() *Server {
+type Server struct {
+	logger      *slog.Logger
+	logLevelVar *slog.LevelVar
+
+	api *grpc.Server
+}
+
+func New(opts *ServerOption) *Server {
+	loggerProvider := opts.LoggerProvider
+
+	apiServer := provideApiServer(loggerProvider.Observable())
+
+	s := &Server{
+		api:         apiServer,
+		logger:      loggerProvider.Logger(),
+		logLevelVar: loggerProvider.LevelVar(),
+	}
+
+	return s
+}
+
+func provideApiServer(logObservable *observable.Observable) *grpc.Server {
+	controller := NewController(&ControllerOptions{
+		LogObservable: logObservable,
+	})
+
 	opts := []grpc.ServerOption{}
 	srv := grpc.NewServer(opts...)
 
 	grpchealthv1.RegisterHealthServer(srv, health.NewServer())
 	reflection.Register(srv)
+	clashv1.RegisterClashServiceServer(srv, controller)
 
-	clashv1.RegisterClashServiceServer(srv, &Controller{})
-
-	s := &Server{
-		grpc: srv,
-	}
-
-	return s
+	return srv
 }
 
 func (s *Server) Serve(ctx context.Context) error {
@@ -54,7 +77,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		addr := cfg.General.APIAddr
 
 		if addr == "" {
-			slog.Info("No API address specified.")
+			s.logger.Info("No API address specified.")
 		}
 
 		ln, err := net.Listen("tcp", addr)
@@ -62,19 +85,19 @@ func (s *Server) Serve(ctx context.Context) error {
 			return fmt.Errorf("net.Listen error: %w", err)
 		}
 
-		slog.Info("API Server listening", slog.String("address", addr))
+		s.logger.Info("API Server listening", slog.String("address", addr))
 
-		if err := s.grpc.Serve(ln); err != nil {
+		if err := s.api.Serve(ln); err != nil {
 			return fmt.Errorf("grpc.Serve error: %w", err)
 		}
 
-		slog.Info("API Server stopped")
+		s.logger.Info("API Server stopped")
 
 		return nil
 	})
 
 	eg.Go(func() error {
-		executor.ApplyConfig(cfg, true)
+		s.applyConfig(cfg, true)
 
 		return nil
 	})
@@ -82,7 +105,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	eg.Go(func() error {
 		<-ctx.Done()
 
-		s.grpc.GracefulStop()
+		s.api.GracefulStop()
 
 		return nil
 	})
@@ -96,18 +119,24 @@ func (s *Server) Serve(ctx context.Context) error {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-hupSigCh:
-				slog.Info("Reload config file")
+				s.logger.Info("Reload config file")
 				cfg, err := executor.ParseWithPath(C.Path.Config())
 				if err != nil {
-					slog.Error("Reload config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
+					s.logger.Error("Reload config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 					break
 				}
 
-				executor.ApplyConfig(cfg, true)
-				slog.Info("Reload config file succeeded")
+				s.applyConfig(cfg, true)
+				s.logger.Info("Reload config file succeeded")
 			}
 		}
 	})
 
 	return eg.Wait()
+}
+
+func (s *Server) applyConfig(cfg *config.Config, force bool) {
+	s.logLevelVar.Set(cfg.General.Logging.Level)
+
+	executor.ApplyConfig(cfg, force)
 }

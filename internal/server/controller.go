@@ -14,17 +14,33 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	clashv1 "github.com/clash-dev/clash/api/clash/v1"
+	"github.com/clash-dev/clash/internal/common/observable"
 	"github.com/clash-dev/clash/internal/component/resolver"
 	"github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/listener"
-	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/tunnel"
 	"github.com/clash-dev/clash/internal/tunnel/statistic"
 	internalversion "github.com/clash-dev/clash/internal/version"
 )
 
+type ControllerOptions struct {
+	Logger *slog.Logger
+
+	LogObservable *observable.Observable
+}
+
 type Controller struct {
 	clashv1.UnimplementedClashServiceServer
+
+	logger        *slog.Logger
+	logObservable *observable.Observable
+}
+
+func NewController(opts *ControllerOptions) *Controller {
+	return &Controller{
+		logObservable: opts.LogObservable,
+		logger:        opts.Logger,
+	}
 }
 
 func (c *Controller) Version(_ context.Context, _ *emptypb.Empty) (*clashv1.VersionResponse, error) {
@@ -36,23 +52,28 @@ func (c *Controller) Version(_ context.Context, _ *emptypb.Empty) (*clashv1.Vers
 func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream clashv1.ClashService_SubscribeLogsServer) error {
 	ctx := stream.Context()
 
-	ch := make(chan log.Event, 1024)
+	ch := make(chan []byte, 1024)
 
 	defer func() {
-		slog.InfoContext(ctx, "Log subscriber exit")
+		c.logger.InfoContext(ctx, "Log subscriber exit")
 	}()
 
-	sub := log.Subscribe()
-	defer log.UnSubscribe(sub)
+	sub, err := c.logObservable.Subscribe()
+	if err != nil {
+		c.logger.Error("Log subscriber failed", slog.Any("error", err))
+		return status.New(codes.Internal, "Log subscribing failed").Err()
+	}
+	defer c.logObservable.UnSubscribe(sub)
 
 	go func() {
 		for elm := range sub {
-			log := elm.(log.Event)
+			log := elm.([]byte)
 			select {
 			case ch <- log:
 			default:
 			}
 		}
+
 		close(ch)
 	}()
 
@@ -62,7 +83,7 @@ func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream cla
 			return ctx.Err()
 		case e := <-ch:
 			err := stream.Send(&clashv1.LogRecord{
-				Payload: e.Payload,
+				Payload: string(e),
 			})
 			if err != nil {
 				return fmt.Errorf("stream sending error: %w", err)
@@ -74,24 +95,8 @@ func (c *Controller) SubscribeLogs(req *clashv1.SubscribeLogsRequest, stream cla
 func (c *Controller) SubscribeTraffics(_ *emptypb.Empty, stream clashv1.ClashService_SubscribeTrafficsServer) error {
 	ctx := stream.Context()
 
-	ch := make(chan log.Event, 1024)
-
 	defer func() {
-		slog.InfoContext(ctx, "Traffic subscriber exit")
-	}()
-
-	sub := log.Subscribe()
-	defer log.UnSubscribe(sub)
-
-	go func() {
-		for elm := range sub {
-			log := elm.(log.Event)
-			select {
-			case ch <- log:
-			default:
-			}
-		}
-		close(ch)
+		c.logger.InfoContext(ctx, "Traffic subscriber exit")
 	}()
 
 	t := statistic.DefaultManager
@@ -172,7 +177,7 @@ func (c *Controller) SubscribeConnections(req *clashv1.SubscribeConnectionsReque
 	ctx := stream.Context()
 
 	defer func() {
-		slog.InfoContext(ctx, "Connection subscriber exit")
+		c.logger.InfoContext(ctx, "Connection subscriber exit")
 	}()
 
 	interval := req.GetInternal()

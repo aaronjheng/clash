@@ -61,7 +61,13 @@ func rootCmd() *cobra.Command {
 				return nil
 			}
 
-			srv := server.New()
+			// Logging
+			loggerProvider := log.Install()
+
+			opts := &server.ServerOption{
+				LoggerProvider: loggerProvider,
+			}
+			srv := server.New(opts)
 
 			if err := srv.Bootstrap(C.Path.HomeDir(), C.Path.CacheDir(), C.Path.StateDir()); err != nil {
 				return fmt.Errorf("server bootstrap failed: %w", err)
@@ -88,9 +94,6 @@ func rootCmd() *cobra.Command {
 }
 
 func main() {
-	// Logging
-	log.Setup()
-
 	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
 
 	cmd := rootCmd()

@@ -1,24 +1,18 @@
 package route
 
 import (
-	"bytes"
 	"crypto/subtle"
-	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
-	"time"
 	"unsafe"
 
-	"github.com/Dreamacro/protobytes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/gorilla/websocket"
 
 	"github.com/clash-dev/clash/internal/log"
-	"github.com/clash-dev/clash/internal/tunnel/statistic"
-	"github.com/clash-dev/clash/internal/version"
 )
 
 var (
@@ -58,17 +52,9 @@ func Start(addr string, secret string) {
 	r.Group(func(r chi.Router) {
 		r.Use(authentication)
 
-		r.Get("/", hello)
-		r.Get("/logs", getLogs)
-		r.Get("/traffic", traffic)
-		r.Get("/version", handleVersion)
 		r.Mount("/configs", configRouter())
-		r.Mount("/inbounds", inboundRouter())
 		r.Mount("/proxies", proxyRouter())
-		r.Mount("/rules", ruleRouter())
-		r.Mount("/connections", connectionRouter())
 		r.Mount("/providers/proxies", proxyProviderRouter())
-		r.Mount("/dns", dnsRouter())
 	})
 
 	l, err := net.Listen("tcp", addr)
@@ -121,130 +107,4 @@ func authentication(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
-}
-
-func hello(w http.ResponseWriter, r *http.Request) {
-	render.JSON(w, r, render.M{"hello": "clash"})
-}
-
-func traffic(w http.ResponseWriter, r *http.Request) {
-	var wsConn *websocket.Conn
-	if websocket.IsWebSocketUpgrade(r) {
-		var err error
-		wsConn, err = upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			return
-		}
-	}
-
-	if wsConn == nil {
-		w.Header().Set("Content-Type", "application/json")
-		render.Status(r, http.StatusOK)
-	}
-
-	tick := time.NewTicker(time.Second)
-	defer tick.Stop()
-	t := statistic.DefaultManager
-	buf := protobytes.BytesWriter{}
-	var err error
-	for range tick.C {
-		buf.Reset()
-		up, down := t.Now()
-		if err := json.NewEncoder(&buf).Encode(Traffic{
-			Up:   up,
-			Down: down,
-		}); err != nil {
-			break
-		}
-
-		if wsConn == nil {
-			_, err = w.Write(buf.Bytes())
-			w.(http.Flusher).Flush()
-		} else {
-			err = wsConn.WriteMessage(websocket.TextMessage, buf.Bytes())
-		}
-
-		if err != nil {
-			break
-		}
-	}
-}
-
-type Log struct {
-	Type    string `json:"type"`
-	Payload string `json:"payload"`
-}
-
-func getLogs(w http.ResponseWriter, r *http.Request) {
-	levelText := r.URL.Query().Get("level")
-	if levelText == "" {
-		levelText = "info"
-	}
-
-	level, ok := log.LogLevelMapping[levelText]
-	if !ok {
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, ErrBadRequest)
-		return
-	}
-
-	var wsConn *websocket.Conn
-	if websocket.IsWebSocketUpgrade(r) {
-		var err error
-		wsConn, err = upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			return
-		}
-	}
-
-	if wsConn == nil {
-		w.Header().Set("Content-Type", "application/json")
-		render.Status(r, http.StatusOK)
-	}
-
-	ch := make(chan log.Event, 1024)
-	sub := log.Subscribe()
-	defer log.UnSubscribe(sub)
-	buf := &bytes.Buffer{}
-
-	go func() {
-		for elm := range sub {
-			log := elm.(log.Event)
-			select {
-			case ch <- log:
-			default:
-			}
-		}
-		close(ch)
-	}()
-
-	for log := range ch {
-		if log.LogLevel < level {
-			continue
-		}
-		buf.Reset()
-
-		if err := json.NewEncoder(buf).Encode(Log{
-			Type:    log.Type(),
-			Payload: log.Payload,
-		}); err != nil {
-			break
-		}
-
-		var err error
-		if wsConn == nil {
-			_, err = w.Write(buf.Bytes())
-			w.(http.Flusher).Flush()
-		} else {
-			err = wsConn.WriteMessage(websocket.TextMessage, buf.Bytes())
-		}
-
-		if err != nil {
-			break
-		}
-	}
-}
-
-func handleVersion(w http.ResponseWriter, r *http.Request) {
-	render.JSON(w, r, render.M{"version": version.Version})
 }
