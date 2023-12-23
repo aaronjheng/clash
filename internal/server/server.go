@@ -77,7 +77,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		addr := cfg.General.APIAddr
 
 		if addr == "" {
-			s.logger.Info("No API address specified.")
+			s.logger.Info("No API address specified")
 			return nil
 		}
 
