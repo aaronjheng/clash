@@ -3,7 +3,6 @@ package listener
 import (
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -63,18 +62,6 @@ type (
 	tcpListenerCreator func(addr string, tcpIn chan<- C.ConnContext) (C.Listener, error)
 	udpListenerCreator func(addr string, udpIn chan<- *inbound.PacketAdapter) (C.Listener, error)
 )
-
-func AllowLan() bool {
-	return allowLan
-}
-
-func BindAddress() string {
-	return bindAddress
-}
-
-func SetAllowLan(al bool) {
-	allowLan = al
-}
 
 func SetBindAddress(host string) {
 	bindAddress = host
@@ -304,35 +291,6 @@ func getInbounds() []C.Inbound {
 	return inbounds
 }
 
-// GetPorts return the ports of proxy servers
-func GetPorts() *Ports {
-	ports := &Ports{}
-	for _, inbound := range getInbounds() {
-		fillPort(inbound, ports)
-	}
-	return ports
-}
-
-func fillPort(inbound C.Inbound, ports *Ports) {
-	if inbound.IsFromPortCfg {
-		port := getPort(inbound.BindAddress)
-		switch inbound.Type {
-		case C.InboundTypeHTTP:
-			ports.Port = port
-		case C.InboundTypeSocks:
-			ports.SocksPort = port
-		case C.InboundTypeTproxy:
-			ports.TProxyPort = port
-		case C.InboundTypeRedir:
-			ports.RedirPort = port
-		case C.InboundTypeMixed:
-			ports.MixedPort = port
-		default:
-			// do nothing
-		}
-	}
-}
-
 func portIsZero(addr string) bool {
 	_, port, err := net.SplitHostPort(addr)
 	if port == "0" || port == "" || err != nil {
@@ -350,16 +308,4 @@ func genAddr(host string, port int, allowLan bool) string {
 	}
 
 	return fmt.Sprintf("127.0.0.1:%d", port)
-}
-
-func getPort(addr string) int {
-	_, portStr, err := net.SplitHostPort(addr)
-	if err != nil {
-		return 0
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return 0
-	}
-	return port
 }

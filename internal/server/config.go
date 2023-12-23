@@ -162,8 +162,8 @@ func updateGeneral(general *config.General, force bool) {
 		return
 	}
 
-	allowLan := general.AllowLan
-	listener.SetAllowLan(allowLan)
+	// allowLan := general.AllowLan
+	// listener.SetAllowLan(allowLan)
 
 	bindAddress := general.BindAddress
 	listener.SetBindAddress(bindAddress)
