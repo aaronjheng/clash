@@ -1,8 +1,6 @@
 package server
 
 import (
-	"fmt"
-	"os"
 	"sync"
 
 	"github.com/clash-dev/clash/internal/adapter"
@@ -18,7 +16,6 @@ import (
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/constant/provider"
 	"github.com/clash-dev/clash/internal/dns"
-	"github.com/clash-dev/clash/internal/listener"
 	authStore "github.com/clash-dev/clash/internal/listener/auth"
 	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/tunnel"
@@ -26,64 +23,15 @@ import (
 
 var mux sync.Mutex
 
-func readConfig(path string) ([]byte, error) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, err
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) == 0 {
-		return nil, fmt.Errorf("configuration file %s is empty", path)
-	}
-
-	return data, err
+func loadConfig() (*config.Config, error) {
+	return config.Load(C.Path.Config())
 }
 
-// Parse config with default config path
-func Parse() (*config.Config, error) {
-	return ParseWithPath(C.Path.Config())
-}
-
-// ParseWithPath parse config with custom config path
-func ParseWithPath(path string) (*config.Config, error) {
-	buf, err := readConfig(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return ParseWithBytes(buf)
-}
-
-// ParseWithBytes config with buffer
-func ParseWithBytes(buf []byte) (*config.Config, error) {
-	return config.Parse(buf)
-}
-
-// ApplyConfig dispatch configure to all parts
-func ApplyConfig(cfg *config.Config, force bool) {
-	mux.Lock()
-	defer mux.Unlock()
-
-	updateUsers(cfg.Users)
-	updateProxies(cfg.Proxies, cfg.Providers)
-	updateRules(cfg.Rules)
-	updateHosts(cfg.Hosts)
-	updateProfile(cfg)
-	updateGeneral(cfg.General, force)
-	updateInbounds(cfg.Inbounds, force)
-	updateDNS(cfg.DNS)
-	updateExperimental(cfg)
-	updateTunnels(cfg.Tunnels)
-}
-
-func updateExperimental(c *config.Config) {
+func (s *Server) updateExperimental(c *config.Config) {
 	tunnel.UDPFallbackMatch.Store(c.Experimental.UDPFallbackMatch)
 }
 
-func updateDNS(c *config.DNS) {
+func (s *Server) updateDNS(c *config.DNS) {
 	if !c.Enable {
 		resolver.DefaultResolver = nil
 		resolver.DefaultHostMapper = nil
@@ -123,33 +71,33 @@ func updateDNS(c *config.DNS) {
 	dns.ReCreateServer(c.Listen, r, m)
 }
 
-func updateHosts(tree *trie.DomainTrie) {
+func (s *Server) updateHosts(tree *trie.DomainTrie) {
 	resolver.DefaultHosts = tree
 }
 
-func updateProxies(proxies map[string]C.Proxy, providers map[string]provider.ProxyProvider) {
+func (s *Server) updateProxies(proxies map[string]C.Proxy, providers map[string]provider.ProxyProvider) {
 	tunnel.UpdateProxies(proxies, providers)
 }
 
-func updateRules(rules []C.Rule) {
+func (s *Server) updateRules(rules []C.Rule) {
 	tunnel.UpdateRules(rules)
 }
 
-func updateTunnels(tunnels []config.Tunnel) {
-	listener.PatchTunnel(tunnels, tunnel.TCPIn(), tunnel.UDPIn())
+func (s *Server) updateTunnels(tunnels []config.Tunnel) {
+	s.listenerManager.patchTunnel(tunnels, tunnel.TCPIn(), tunnel.UDPIn())
 }
 
-func updateInbounds(inbounds []C.Inbound, force bool) {
+func (s *Server) updateInbounds(inbounds []C.Inbound, force bool) {
 	if !force {
 		return
 	}
 	tcpIn := tunnel.TCPIn()
 	udpIn := tunnel.UDPIn()
 
-	listener.ReCreateListeners(inbounds, tcpIn, udpIn)
+	s.listenerManager.ReCreateListeners(inbounds, tcpIn, udpIn)
 }
 
-func updateGeneral(general *config.General, force bool) {
+func (s *Server) updateGeneral(general *config.General, force bool) {
 	tunnel.SetMode(general.Mode)
 	resolver.DisableIPv6 = !general.IPv6
 
@@ -165,20 +113,21 @@ func updateGeneral(general *config.General, force bool) {
 	// allowLan := general.AllowLan
 	// listener.SetAllowLan(allowLan)
 
-	bindAddress := general.BindAddress
-	listener.SetBindAddress(bindAddress)
+	// bindAddress := general.BindAddress
+	// listener.SetBindAddress(bindAddress)
 
-	ports := listener.Ports{
+	ports := Ports{
 		Port:       general.Port,
 		SocksPort:  general.SocksPort,
 		RedirPort:  general.RedirPort,
 		TProxyPort: general.TProxyPort,
 		MixedPort:  general.MixedPort,
 	}
-	listener.ReCreatePortsListeners(ports, tunnel.TCPIn(), tunnel.UDPIn())
+
+	s.listenerManager.recreatePortsListeners(ports, tunnel.TCPIn(), tunnel.UDPIn())
 }
 
-func updateUsers(users []auth.AuthUser) {
+func (s *Server) updateUsers(users []auth.AuthUser) {
 	authenticator := auth.NewAuthenticator(users)
 	authStore.SetAuthenticator(authenticator)
 	if authenticator != nil {
@@ -186,7 +135,7 @@ func updateUsers(users []auth.AuthUser) {
 	}
 }
 
-func updateProfile(cfg *config.Config) {
+func (s *Server) updateProfile(cfg *config.Config) {
 	profileCfg := cfg.Profile
 
 	profile.StoreSelected.Store(profileCfg.StoreSelected)

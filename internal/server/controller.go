@@ -17,29 +17,31 @@ import (
 	"github.com/clash-dev/clash/internal/common/observable"
 	"github.com/clash-dev/clash/internal/component/resolver"
 	"github.com/clash-dev/clash/internal/constant"
-	"github.com/clash-dev/clash/internal/listener"
 	"github.com/clash-dev/clash/internal/tunnel"
 	"github.com/clash-dev/clash/internal/tunnel/statistic"
 	internalversion "github.com/clash-dev/clash/internal/version"
 )
 
 type ControllerOptions struct {
-	Logger *slog.Logger
-
-	LogObservable *observable.Observable
+	Logger          *slog.Logger
+	Srv             *Server
+	LogObservable   *observable.Observable
+	ListenerManager *ListenerManager
 }
 
 type Controller struct {
 	clashv1.UnimplementedClashServiceServer
 
-	logger        *slog.Logger
-	logObservable *observable.Observable
+	logger          *slog.Logger
+	logObservable   *observable.Observable
+	listenerManager *ListenerManager
 }
 
 func NewController(opts *ControllerOptions) *Controller {
 	return &Controller{
-		logObservable: opts.LogObservable,
-		logger:        opts.Logger,
+		logObservable:   opts.LogObservable,
+		logger:          opts.Logger,
+		listenerManager: opts.ListenerManager,
 	}
 }
 
@@ -140,7 +142,7 @@ func (c *Controller) ListRules(_ context.Context, _ *emptypb.Empty) (*clashv1.Li
 }
 
 func (c *Controller) ListInbounds(_ context.Context, _ *emptypb.Empty) (*clashv1.ListInboundsResponse, error) {
-	rawInbounds := listener.GetInbounds()
+	rawInbounds := c.listenerManager.GetInbounds()
 
 	cnt := len(rawInbounds)
 	inbounds := make([]*clashv1.ListInboundsResponse_Inbound, 0, cnt)
@@ -168,7 +170,7 @@ func (c *Controller) BatchUpdateInbounds(ctx context.Context, req *clashv1.Batch
 		})
 	}
 
-	listener.ReCreateListeners(inbounds, tunnel.TCPIn(), tunnel.UDPIn())
+	c.listenerManager.ReCreateListeners(inbounds, tunnel.TCPIn(), tunnel.UDPIn())
 
 	return nil, nil
 }

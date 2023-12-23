@@ -15,6 +15,7 @@ import (
 	"github.com/square/exit"
 	"go.uber.org/automaxprocs/maxprocs"
 
+	"github.com/clash-dev/clash/internal/config"
 	C "github.com/clash-dev/clash/internal/constant"
 	"github.com/clash-dev/clash/internal/log"
 	"github.com/clash-dev/clash/internal/server"
@@ -50,7 +51,7 @@ func rootCmd() *cobra.Command {
 			}
 
 			if testConfig {
-				if _, err := server.Parse(); err != nil {
+				if _, err := config.Load(C.Path.Config()); err != nil {
 					slog.Error("Configuration file test failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 					os.Exit(exit.NotOK)
 				}

@@ -30,24 +30,25 @@ type Server struct {
 	logger      *slog.Logger
 	logLevelVar *slog.LevelVar
 
-	api *grpc.Server
+	api             *grpc.Server
+	listenerManager *ListenerManager
 }
 
 func New(opts *ServerOption) *Server {
 	loggerProvider := opts.LoggerProvider
-
-	apiServer := provideApiServer(loggerProvider.Observable())
+	listenerManager := NewListenerManager()
 
 	s := &Server{
-		api:         apiServer,
-		logger:      loggerProvider.Logger(),
-		logLevelVar: loggerProvider.LevelVar(),
+		logger:          loggerProvider.Logger(),
+		logLevelVar:     loggerProvider.LevelVar(),
+		listenerManager: listenerManager,
+		api:             provideApiServer(loggerProvider.Observable(), listenerManager),
 	}
 
 	return s
 }
 
-func provideApiServer(logObservable *observable.Observable) *grpc.Server {
+func provideApiServer(logObservable *observable.Observable, listenerManager *ListenerManager) *grpc.Server {
 	controller := NewController(&ControllerOptions{
 		LogObservable: logObservable,
 	})
@@ -66,9 +67,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	ctx, cancelFunc := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer cancelFunc()
 
-	cfg, err := Parse()
+	cfg, err := loadConfig()
 	if err != nil {
-		return fmt.Errorf("Parse error: %w", err)
+		return fmt.Errorf("parse error: %w", err)
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -120,7 +121,7 @@ func (s *Server) Serve(ctx context.Context) error {
 				return ctx.Err()
 			case <-hupSigCh:
 				s.logger.Info("Reload config file")
-				cfg, err := ParseWithPath(C.Path.Config())
+				cfg, err := loadConfig()
 				if err != nil {
 					s.logger.Error("Reload config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 					break
@@ -138,5 +139,17 @@ func (s *Server) Serve(ctx context.Context) error {
 func (s *Server) applyConfig(cfg *config.Config, force bool) {
 	s.logLevelVar.Set(cfg.General.Logging.Level)
 
-	ApplyConfig(cfg, force)
+	mux.Lock()
+	defer mux.Unlock()
+
+	s.updateUsers(cfg.Users)
+	s.updateProxies(cfg.Proxies, cfg.Providers)
+	s.updateRules(cfg.Rules)
+	s.updateHosts(cfg.Hosts)
+	s.updateProfile(cfg)
+	s.updateGeneral(cfg.General, force)
+	s.updateInbounds(cfg.Inbounds, force)
+	s.updateDNS(cfg.DNS)
+	s.updateExperimental(cfg)
+	s.updateTunnels(cfg.Tunnels)
 }
