@@ -1,4 +1,4 @@
-package executor
+package server
 
 import (
 	"fmt"
@@ -77,31 +77,6 @@ func ApplyConfig(cfg *config.Config, force bool) {
 	updateDNS(cfg.DNS)
 	updateExperimental(cfg)
 	updateTunnels(cfg.Tunnels)
-}
-
-func GetGeneral() *config.General {
-	ports := listener.GetPorts()
-	authenticator := []string{}
-	if auth := authStore.Authenticator(); auth != nil {
-		authenticator = auth.Users()
-	}
-
-	general := &config.General{
-		LegacyInbound: config.LegacyInbound{
-			Port:        ports.Port,
-			SocksPort:   ports.SocksPort,
-			RedirPort:   ports.RedirPort,
-			TProxyPort:  ports.TProxyPort,
-			MixedPort:   ports.MixedPort,
-			AllowLan:    listener.AllowLan(),
-			BindAddress: listener.BindAddress(),
-		},
-		Authentication: authenticator,
-		Mode:           tunnel.Mode(),
-		IPv6:           !resolver.DisableIPv6,
-	}
-
-	return general
 }
 
 func updateExperimental(c *config.Config) {

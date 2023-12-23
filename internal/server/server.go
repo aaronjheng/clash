@@ -19,7 +19,6 @@ import (
 	"github.com/clash-dev/clash/internal/common/observable"
 	"github.com/clash-dev/clash/internal/config"
 	C "github.com/clash-dev/clash/internal/constant"
-	"github.com/clash-dev/clash/internal/hub/executor"
 	"github.com/clash-dev/clash/internal/log"
 )
 
@@ -67,9 +66,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	ctx, cancelFunc := signal.NotifyContext(ctx, os.Interrupt, os.Kill, syscall.SIGTERM)
 	defer cancelFunc()
 
-	cfg, err := executor.Parse()
+	cfg, err := Parse()
 	if err != nil {
-		return fmt.Errorf("executor.Parse error: %w", err)
+		return fmt.Errorf("Parse error: %w", err)
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -121,7 +120,7 @@ func (s *Server) Serve(ctx context.Context) error {
 				return ctx.Err()
 			case <-hupSigCh:
 				s.logger.Info("Reload config file")
-				cfg, err := executor.ParseWithPath(C.Path.Config())
+				cfg, err := ParseWithPath(C.Path.Config())
 				if err != nil {
 					s.logger.Error("Reload config file failed", slog.Any("error", err), slog.String("config", C.Path.Config()))
 					break
@@ -139,5 +138,5 @@ func (s *Server) Serve(ctx context.Context) error {
 func (s *Server) applyConfig(cfg *config.Config, force bool) {
 	s.logLevelVar.Set(cfg.General.Logging.Level)
 
-	executor.ApplyConfig(cfg, force)
+	ApplyConfig(cfg, force)
 }
