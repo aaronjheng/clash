@@ -14,14 +14,6 @@ import (
 	"github.com/clash-dev/clash/internal/listener/tproxy"
 )
 
-type Ports struct {
-	Port       int `json:"port"`
-	SocksPort  int `json:"socks-port"`
-	RedirPort  int `json:"redir-port"`
-	TProxyPort int `json:"tproxy-port"`
-	MixedPort  int `json:"mixed-port"`
-}
-
 var tcpListenerCreators = map[C.InboundType]tcpListenerCreator{
 	C.InboundTypeHTTP:   http.New,
 	C.InboundTypeSocks:  socks.New,
